@@ -23,8 +23,9 @@ func main() {
 	dbmap := initDb()
 	defer dbmap.Db.Close()
 
-	err = dbmap.TruncateTables()
-	CheckErr(err, "TruncateTables failed")
+	// Clean the data in the database so.
+	//err = dbmap.TruncateTables()
+	//CheckErr(err, "TruncateTables failed")
 
 }
 

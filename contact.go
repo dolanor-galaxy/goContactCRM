@@ -22,8 +22,9 @@ type Person struct {
 }
 
 func (p *Person) SavePerson(text qml.Object) {
-	log.Println("Trying to save!")
+	//log.Println("Trying to save!")
 
+	// Fetch data from qml form
 	p.Created = time.Now().UnixNano()
 	p.FamilyName = text.ObjectByName("familyName").String("text")
 	p.GivenName = text.ObjectByName("givenName").String("text")
@@ -33,17 +34,20 @@ func (p *Person) SavePerson(text qml.Object) {
 	p.Role = text.ObjectByName("role").String("text")
 	log.Println(p.Created, p.FamilyName, p.GivenName, p.AdditionalName, p.NickName, p.Title, p.Role)
 
+	// Initialize DB Connection.
 	dbmap := initDb()
 	defer dbmap.Db.Close()
 
+	// Insert Data
 	err := dbmap.Insert(p)
 	CheckErr(err, "DB Insert Failed: ")
 
+	// Count All Rows
 	count, err := dbmap.SelectInt("select count(*) from person")
 	CheckErr(err, "select count(*) failed")
 	log.Println("Rows after inserting:", count)
 
-	// fetch all rows
+	// Fetch all rows
 	var person []Person
 	_, err = dbmap.Select(&person, "select * from person")
 	CheckErr(err, "Select failed")
