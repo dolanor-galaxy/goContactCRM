@@ -1,1 +1,1 @@
-go build github.com/mickgardner/contact
+go build github.com/mickgardner/goContactCRM
