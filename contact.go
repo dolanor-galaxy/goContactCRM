@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -9,8 +10,8 @@ import (
 )
 
 type Person struct {
-	Root           qml.Object
-	Id             int64 `db:"person_id"`
+	Root           qml.Object `db:"-"`
+	Id             int64      `db:"person_id"`
 	Created        int64
 	FamilyName     string
 	GivenName      string
@@ -21,6 +22,8 @@ type Person struct {
 }
 
 func (p *Person) SavePerson(text qml.Object) {
+	log.Println("Trying to save!")
+
 	p.Created = time.Now().UnixNano()
 	p.FamilyName = text.ObjectByName("familyName").String("text")
 	p.GivenName = text.ObjectByName("givenName").String("text")
@@ -28,12 +31,29 @@ func (p *Person) SavePerson(text qml.Object) {
 	p.NickName = text.ObjectByName("nickName").String("text")
 	p.Title = text.ObjectByName("title").String("text")
 	p.Role = text.ObjectByName("role").String("text")
+	log.Println(p.Created, p.FamilyName, p.GivenName, p.AdditionalName, p.NickName, p.Title, p.Role)
 
 	dbmap := initDb()
 	defer dbmap.Db.Close()
 
-	err := dbmap.Insert(&p)
-	CheckErr(err, "DB Insert Failed")
+	err := dbmap.Insert(p)
+	CheckErr(err, "DB Insert Failed: ")
+
+	count, err := dbmap.SelectInt("select count(*) from person")
+	CheckErr(err, "select count(*) failed")
+	log.Println("Rows after inserting:", count)
+
+	// fetch all rows
+	var person []Person
+	_, err = dbmap.Select(&person, "select * from person")
+	CheckErr(err, "Select failed")
+	log.Println("All rows:")
+	for x, p := range person {
+		log.Printf("    %d: %v\n", x, p)
+	}
+
+	log.Println("Everything must have worked!")
+
 	//fmt.Printf("%v: ", p)
 }
 
@@ -45,8 +65,8 @@ func (p *Person) GetPeople() []Person {
 	dbmap := initDb()
 	defer dbmap.Db.Close()
 
-	var people []Person
-	_, err := dbmap.Select(&people, "select * from people order by people_id")
+	var person []Person
+	_, err := dbmap.Select(&person, "select * from person order by people_id")
 	CheckErr(err, "DB Select All Failed")
-	return people
+	return person
 }
